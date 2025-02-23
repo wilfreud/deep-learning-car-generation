@@ -5,20 +5,22 @@ Lance FastAPI avec Uvicorn: uvicorn api:app --reload
 """
 from fastapi import FastAPI
 from pydantic import BaseModel
-import numpy as np
-import keras
-from diffusers import StableDiffusionPipeline
 import random
 import string
-import keras
+from diffusers import StableDiffusionPipeline
+from fastapi.middleware.cors import CORSMiddleware
 
 # Initialiser FastAPI
 app = FastAPI()
 
-# Charger le modèle de prédiction
-model_path = "v1.keras"
-model = keras.saving.load_model(model_path)
-print("✅ Modèle de prédiction chargé.")
+# Activer CORS pour que React puisse appeler l'API
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Autoriser tous les domaines (mettre ton URL en prod)
+    allow_credentials=True,
+    allow_methods=["*"],  # Autoriser toutes les méthodes (GET, POST, etc.)
+    allow_headers=["*"],  # Autoriser tous les headers
+)
 
 # Charger Stable Diffusion
 pipe = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4")
@@ -31,14 +33,18 @@ def generate_random_filename(extension="png"):
 
 # Modèle de requête
 class CarRequest(BaseModel):
-    features: list
     description: str
+    price: float
+
+# Endpoint de test
+@app.get("/")
+def healthcheck():
+    return {"status": "It works"}
 
 # Endpoint pour générer une image
 @app.post("/generate")
 def generate_car_image(request: CarRequest):
-    predicted_price = model.predict(np.array(request.features).reshape(1, -1))[0][0]
-    prompt = f"Voiture {request.description}, estimée à {int(predicted_price)}€, design moderne et détaillé"
+    prompt = f"Voiture {request.description}, estimée à {int(request.price)}€, design moderne et détaillé"
     
     print(f"🚗 Génération de l'image pour : {prompt}")
     image = pipe(prompt).images[0]
@@ -51,4 +57,3 @@ def generate_car_image(request: CarRequest):
 
     # Retourner l'URL de l'image
     return {"image_url": f"http://localhost:8000/{image_path}"}
-
