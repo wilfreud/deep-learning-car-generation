@@ -1,24 +1,27 @@
-# Use an official ROCm-enabled PyTorch image as base
-FROM rocm/pytorch:latest
+# Use an official TensorFlow CPU image as the base
+FROM tensorflow/tensorflow:latest
 
 # Set the working directory
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    libgl1-mesa-glx \
-    libglib2.0-0 \
-    && rm -rf /var/lib/apt/lists/*
+# Create a user named 'commodore'
+RUN useradd -m commodore && \
+    chown -R commodore:commodore /app
 
-# Install Python dependencies
-COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+# Switch to the 'commodore' user
+USER commodore
 
-# Copy the current directory contents into the container at /app
-COPY . .
+# Copy your code into the container
+COPY --chown=commodore:commodore . .
 
-# Expose the port the app runs on
+# Install FastAPI, Uvicorn, and other dependencies
+RUN pip install fastapi uvicorn diffusers pydantic transformers torch
+
+# Expose port 8000
 EXPOSE 8000
 
-# Command to run the application
-CMD ["uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+# Ensure permissions are set correctly
+RUN chmod -R 755 /app
+
+# Command to run the FastAPI app (using ENTRYPOINT instead of CMD)
+ENTRYPOINT ["python", "-m", "uvicorn", "api:app", "--host", "0.0.0.0", "--port", "8000"]

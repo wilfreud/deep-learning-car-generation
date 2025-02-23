@@ -34,5 +34,5 @@ def healthcheck():
 def generate_car_image(request: CarRequest):
     print(request.description, request.price)
     # Retourner l'URL de l'image
-    return {"image_url": "https://www.electromobiliste.fr/wp-content/uploads/2022/01/tesla-roadster.jpg"}
+    return {"image_url": "https://dl.imgdrop.io/file/aed8b140-8472-4813-922b-7ce35ef93c9e/2025/02/23/sh58olt4c582ec8120825fca.png"}
 

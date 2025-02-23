@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 interface Message {
   id: string;
   content: string;
+  predicted_price?: number;
   role: "user" | "assistant";
   timestamp: Date;
   isErrorMessage?: boolean;
@@ -72,6 +73,7 @@ function App() {
               content: data.image_url,
               role: "assistant",
               timestamp: new Date(),
+              predicted_price: data.predicted_price,
             },
           ]);
         })
@@ -146,10 +148,13 @@ function App() {
                 {message.isErrorMessage || message.role === "user" ? (
                   message.content
                 ) : (
-                  <img
-                    src={message.content}
-                    className="w-[650px] h-[450px] object-cover"
-                  />
+                  <div>
+                    <h3>{message.predicted_price} EUR</h3>
+                    <img
+                      src={message.content}
+                      className="w-[650px] h-[450px] object-cover"
+                    />
+                  </div>
                 )}
               </div>
               <span className="text-xs text-muted-foreground mt-1">
